@@ -5,6 +5,7 @@
 // Lionel-Groulx College
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { log } from "./log.js";
+import CachedRequestsManager from "./cachedRequestsManager.js"; 
 
 export default class Response {
     constructor(HttpContext) {
@@ -40,11 +41,21 @@ export default class Response {
         this.res.writeHead(204, { 'ETag': ETag });
         this.end();
     }
-    JSON(obj, ETag = "") {                         // ok status with content
+    JSON(obj, ETag = "", fromCache = false) {                         // ok status with content
         if (ETag != "")
             this.res.writeHead(200, { 'content-type': 'application/json', 'ETag': ETag });
         else
             this.res.writeHead(200, { 'content-type': 'application/json' });
+
+        /* Modifier la méthode HttpContext.response.JSON(jsonObj, ETag="", fromCache = false ). Si le paramètre fromCache est
+        faux ajouter dans la cache si la requête est de type API et que le id est non défini */
+        if (!fromCache) {
+            if (this.HttpContext.path.isAPI && this.HttpContext.path.id == undefined) {
+                CachedRequestsManager.add(this.HttpContext.req.url, obj, ETag);
+            }
+        };
+            
+
         if (obj != null) {
             let content = JSON.stringify(obj);
             console.log(FgCyan+Bright, "Response payload -->", content.toString().substring(0, 75) + "...");

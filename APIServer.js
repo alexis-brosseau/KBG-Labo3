@@ -9,6 +9,7 @@ import MiddlewaresPipeline from './middlewaresPipeline.js';
 import * as router from './router.js';
 import { handleCORSPreflight } from './cors.js';
 import { handleStaticResourceRequest } from './staticResourcesServer.js';
+import CachedRequestsManager from "./CachedRequestsManager.js";
 
 let api_server_version = serverVariables.get("main.api_server_version");
 
@@ -25,6 +26,7 @@ export default class APIServer {
         // common middlewares
         this.middlewaresPipeline.add(handleCORSPreflight);
         this.middlewaresPipeline.add(handleStaticResourceRequest);
+        this.middlewaresPipeline.add(CachedRequestsManager.get);
 
         // API middlewares
         this.middlewaresPipeline.add(router.API_EndPoint);
