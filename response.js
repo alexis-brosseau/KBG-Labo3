@@ -47,14 +47,9 @@ export default class Response {
         else
             this.res.writeHead(200, { 'content-type': 'application/json' });
 
-        /* Modifier la méthode HttpContext.response.JSON(jsonObj, ETag="", fromCache = false ). Si le paramètre fromCache est
-        faux ajouter dans la cache si la requête est de type API et que le id est non défini */
-        if (!fromCache) {
-            if (this.HttpContext.path.isAPI && this.HttpContext.path.id == undefined) {
-                CachedRequestsManager.add(this.HttpContext.req.url, obj, ETag);
-            }
-        };
-            
+        if (!fromCache && this.HttpContext.isCacheable) {
+            CachedRequestsManager.add(this.HttpContext.req.url, obj, ETag);
+        };            
 
         if (obj != null) {
             let content = JSON.stringify(obj);
