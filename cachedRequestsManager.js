@@ -52,7 +52,7 @@ export default class CachedRequestsManager {
             let indexToDelete = [];
             let index = 0;
             for (let cache of requestsCaches) {
-                if (cache.url == url) indexToDelete.push(index);
+                if (url.includes(cache.url)) indexToDelete.push(index);
                 index++;
             }
             utilities.deleteByIndex(requestsCaches, indexToDelete);
@@ -68,6 +68,13 @@ export default class CachedRequestsManager {
         requestsCaches = requestsCaches.filter( cache => cache.Expire_Time > now);
     }
     static get(HttpContext) {
+
+        let method = HttpContext.req.method;
+        if (method == "POST" || method == "PUT" || method == "DELETE") {
+            CachedRequestsManager.clear(HttpContext.req.url);
+            return false;
+        }
+
         if (!HttpContext.isCacheable) return false;
 
         let cache = CachedRequestsManager.find(HttpContext.req.url);
