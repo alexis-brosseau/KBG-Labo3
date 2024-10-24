@@ -68,12 +68,14 @@ export default class CachedRequestsManager {
         requestsCaches = requestsCaches.filter( cache => cache.Expire_Time > now);
     }
     static get(HttpContext) {
-        let url = HttpContext.req.url;
-        let cache = CachedRequestsManager.find(url);
-        if (cache) {
-            HttpContext.response.JSON(cache.content, cache.ETag, true);
-            return true;
-        }
-        return false;
+        if (HttpContext.isCacheable)
+            return false;
+
+        let cache = CachedRequestsManager.find(HttpContext.req.url);
+        if (!cache)
+            return false;
+        
+        HttpContext.response.JSON(cache.content, cache.ETag, true);
+        return true;
     }
 }
