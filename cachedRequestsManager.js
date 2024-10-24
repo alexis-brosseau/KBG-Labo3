@@ -1,5 +1,6 @@
 import * as utilities from "./utilities.js";
 import * as serverVariables from "./serverVariables.js";
+import Repository from "./models/repository.js";
 
 const CACHES_EXPIRATION_TIME = serverVariables.get("main.requests.CacheExpirationTime");
 
@@ -52,7 +53,7 @@ export default class CachedRequestsManager {
             let indexToDelete = [];
             let index = 0;
             for (let cache of requestsCaches) {
-                if (url.includes(cache.url)) indexToDelete.push(index);
+                if (cache.url == url) indexToDelete.push(index);
                 index++;
             }
             utilities.deleteByIndex(requestsCaches, indexToDelete);
@@ -69,16 +70,14 @@ export default class CachedRequestsManager {
     }
     static get(HttpContext) {
 
-        let method = HttpContext.req.method;
-        if (method == "POST" || method == "PUT" || method == "DELETE") {
-            CachedRequestsManager.clear(HttpContext.req.url);
-            return false;
-        }
-
         if (!HttpContext.isCacheable) return false;
 
         let cache = CachedRequestsManager.find(HttpContext.req.url);
         if (!cache) return false;
+        if (cache.Etag != Repository.getETag(HttpContext.path.model)) {
+            CachedRequestsManager.clear(HttpContext.req.url);
+            return false;
+        }
         
         HttpContext.response.JSON(cache.content, cache.ETag, true);
         return true;
